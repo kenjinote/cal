@@ -36,14 +36,14 @@ int GetFirstDayOfWeek(int year, int month)
 // 1以上かつ12以下の数値は月と推測し1を返す
 // 0または12より大きい７桁以下の数値なら年と推測し2を返す
 // それ以外なら0を返す
-int MonthOrYear(const char *str, int *out)
+int MonthOrYear(const wchar_t *str, int *out)
 {
 	if (str && str[0] && isdigit(str[0]))
 	{
-		if (str[1] == '\0' || str[2] == '\0' || str[3] == '\0' || str[4] == '\0' ||
-			str[5] == '\0' || str[6] == '\0' || str[7] == '\0' || str[8] == '\0')
+		if (str[1] == L'\0' || str[2] == L'\0' || str[3] == L'\0' || str[4] == L'\0' ||
+			str[5] == L'\0' || str[6] == L'\0' || str[7] == L'\0' || str[8] == L'\0')
 		{
-			const int n = atoi(str);
+			const int n = _wtoi(str);
 			if (out) *out = n;
 			return (1 <= n && n <= 12) ? 1 : 2;
 		}
@@ -56,7 +56,7 @@ int MonthOrYear(const char *str, int *out)
 //指定された年月のカレンダーを表示する
 void PrintCal(int year, int month)
 {
-	printf("%7d月%5d\n", month, year);
+	printf("%9d年%2d月\n", year, month);
 	printf("日 月 火 水 木 金 土\n");
 	// 現在の月の1日が何曜日か調べる
 	int w = GetFirstDayOfWeek(year, month);
@@ -73,15 +73,19 @@ void PrintCal(int year, int month)
 	printf("\n");
 }
 
-int main(int argc, char*argv[])
+int wmain(int argc, wchar_t*argv[])
 {
 	int year = 0, month = 0;
 	if (argc == 1)
 	{
 		time_t t = time(0);
-		struct tm *l = localtime(&t);
-		year = l->tm_year + 1900;
-		month = l->tm_mon + 1;
+		struct tm l = {};
+		errno_t error = localtime_s(&l, &t);
+		if (error != 0) {
+			return 0;
+		}
+		year = l.tm_year + 1900;
+		month = l.tm_mon + 1;
 	}
 	else if (argc == 2 || argc == 3)
 	{
